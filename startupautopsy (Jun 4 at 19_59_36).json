@@ -1,0 +1,835 @@
+{
+  "name": "startupautopsy (Jun 4 at 19:59:36)",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Startup Idea Evaluation",
+        "formDescription": "Submit your startup idea for AI-powered analysis",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Startup Name",
+              "fieldName": "startup_name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Problem Description",
+              "fieldType": "textarea",
+              "fieldName": "problem_description",
+              "placeholder": "Describe the problem your startup solves (at least 50 characters)",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Target User",
+              "fieldName": "target_user",
+              "placeholder": "Who is your target customer?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Solution",
+              "fieldType": "textarea",
+              "fieldName": "your_solution",
+              "placeholder": "Describe your solution",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Founder Email",
+              "fieldType": "email",
+              "fieldName": "founder_email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d2aa59aa-0dd4-41a2-aac1-fbae4eade910",
+      "name": "Startup Evaluation Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        1600,
+        464
+      ],
+      "webhookId": "c372c102-6490-4a1f-aa62-e44de250ab8a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.problem_description.length }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "rightValue": 50
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c313522d-80b5-49b6-b629-004959203840",
+      "name": "Input Validator",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1824,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a startup coach. Evaluate the clarity of this problem statement.\nReturn ONLY valid JSON, no markdown:\n{\"score\": <1-10>, \"feedback\": \"<2 sentences>\", \"is_well_defined\": <true/false>}"
+            },
+            {
+              "content": "=Problem: {{ $json.problem_description }}\nTarget user: {{ $json.target_user }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "1d527f13-647b-4349-8c4c-2a64a752030b",
+      "name": "Problem Clarity Agent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        2048,
+        80
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "48a4da75-7a5e-453c-bcd2-ae72e0458cb5",
+      "name": "Merge Analysis",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2400,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a market analyst. Evaluate the market potential of this startup idea.\nReturn ONLY valid JSON, no markdown:\n{\"score\": <1-10>, \"market_size\": \"<estimate>\", \"trend\": \"<growing/stable/declining>\", \"willingness_to_pay\": \"<high/medium/low>\"}"
+            },
+            {
+              "content": "=Startup: {{ $json.startup_name }}\nSolution: {{ $json.your_solution }}\nTarget user: {{ $json.target_user }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "c0c73ecd-8af9-43a8-b8ea-89b6b370b699",
+      "name": "Market Research Agent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        2048,
+        272
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a competitive intelligence analyst.\nReturn ONLY valid JSON, no markdown:\n{\"score\": <1-10>, \"top_competitors\": [\"<name>\",\"<name>\",\"<name>\"], \"moat_assessment\": \"<1 sentence>\", \"differentiation\": \"<strong/moderate/weak>\"}"
+            },
+            {
+              "content": "=Startup: {{ $json.startup_name }}\nSolution: {{ $json.your_solution }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "2b17e6b9-72ac-44f7-a0b4-6735ed6bd283",
+      "name": "Competition Checker Agent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        2048,
+        464
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractScore(agentOutput) {\n  try {\n    const text = agentOutput.first().json.output[0].content[0].text;\n    return JSON.parse(text);\n  } catch(e) {\n    const raw = agentOutput.first().json.output;\n    const text = typeof raw === 'string' ? raw : JSON.stringify(raw);\n    const match = text.match(/\\{[\\s\\S]*\\}/);\n    if (match) return JSON.parse(match[0]);\n    throw new Error('Could not extract score from: ' + text);\n  }\n}\n\nconst clarity = extractScore($('Problem Clarity Agent'));\nconst market = extractScore($('Market Research Agent'));\nconst competition = extractScore($('Competition Checker Agent'));\n\nconst avg = (clarity.score + market.score + competition.score) / 3;\n\nlet verdict;\nif (avg >= 7) verdict = \"Promising\";\nelse if (avg >= 5) verdict = \"Needs Work\";\nelse verdict = \"Pivot\";\n\nreturn [{\n  json: {\n    clarity_score: clarity.score,\n    market_score: market.score,\n    competition_score: competition.score,\n    average_score: Math.round(avg * 10) / 10,\n    verdict,\n    clarity_feedback: clarity.feedback,\n    competitors: competition.top_competitors,\n    moat: competition.moat_assessment,\n    market_size: market.market_size,\n    all_outputs: { clarity, market, competition }\n  }\n}];"
+      },
+      "id": "66b160a0-8658-4916-baea-7097d37e77e3",
+      "name": "Scoring Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2624,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.verdict }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "Promising",
+                    "id": "2bc44ea1-aaff-430d-b029-907ac1dfcbb6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Promising"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.verdict }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "Needs Work",
+                    "id": "c794501b-8f47-439d-8b1f-b5cd1b0349ed"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Needs Work"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.verdict }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "Pivot",
+                    "id": "73a0078d-09be-4370-aa17-6040dc8ea8c7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Pivot"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "67a5c805-d3e7-4eb5-ba69-b8f8bc6cc69e",
+      "name": "Verdict Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2848,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a forensic AI auditor. Given an AI-generated startup verdict, reconstruct the likely reasoning steps the AI used.\nReturn ONLY valid JSON:\n{\"reasoning_steps\": [\"step1\",\"step2\",\"step3\"], \"key_inference\": \"<main logical leap made>\"}"
+            },
+            {
+              "content": "=Verdict: {{ $json.verdict }} (avg score: {{ $json.average_score }})\nClarity feedback: {{ $json.clarity_feedback }}\nMarket size assumed: {{ $json.market_size }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "0fe2fd30-b275-4f5c-9b89-5b100784080f",
+      "name": "Reasoning Reconstructor",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        3072,
+        176
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "6fda2c6c-dde1-4455-8710-4a95739a69b7",
+      "name": "Merge Autopsy Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3424,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an AI assumption auditor. Find hidden assumptions in this AI-generated startup analysis.\nReturn ONLY valid JSON:\n{\"assumptions\": [\"assumption1\",\"assumption2\",\"assumption3\"], \"riskiest_assumption\": \"<the one most likely to be wrong>\"}"
+            },
+            {
+              "content": "=Full analysis: {{ JSON.stringify($json.all_outputs) }}\nVerdict: {{ $json.verdict }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "6698106b-b2b7-41e8-9fce-044bc15ee910",
+      "name": "Assumption Extractor",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        3072,
+        368
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an AI error detection specialist. Find logical errors, potential hallucinations, or unjustified claims in this startup analysis.\nReturn ONLY valid JSON:\n{\"errors_found\": <true/false>, \"error_list\": [\"error1\",\"error2\"], \"hallucination_risk\": \"<high/medium/low>\", \"most_critical_issue\": \"<1 sentence or null>\"}"
+            },
+            {
+              "content": "=Market claim: {{ $json.market_size }}\nCompetitors listed: {{ $json.competitors }}\nFull output: {{ JSON.stringify($json.all_outputs) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "8e88f4f0-d275-4bbb-9f2f-3b1269e1f8b0",
+      "name": "Error Detector",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        3072,
+        560
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractJSON(agentOutput) {\n  try {\n    const text = agentOutput.first().json.output[0].content[0].text;\n    return JSON.parse(text);\n  } catch(e) {\n    return {};\n  }\n}\n\nconst reasoning = extractJSON($('Reasoning Reconstructor'));\nconst assumptions = extractJSON($('Assumption Extractor'));\nconst errors = extractJSON($('Error Detector'));\n\nconst baseScore = $('Scoring Logic').first().json.average_score / 10;\n\nlet confidence = baseScore;\nif (errors.errors_found) confidence -= 0.2;\nif (errors.hallucination_risk === 'high') confidence -= 0.15;\nif (assumptions.riskiest_assumption) confidence -= 0.05;\nconfidence = Math.max(0, Math.min(1, confidence));\n\nlet risk, failure_type;\nif (confidence < 0.4) { risk = \"critical\"; failure_type = \"hallucination_or_logic_error\"; }\nelse if (confidence < 0.6) { risk = \"medium\"; failure_type = \"unverified_assumptions\"; }\nelse { risk = \"low\"; failure_type = \"none\"; }\n\nreturn [{ json: { \n  ...($('Scoring Logic').first().json), \n  confidence: Math.round(confidence * 100) / 100, \n  risk, \n  failure_type, \n  reasoning_steps: reasoning.reasoning_steps || null,\n  riskiest_assumption: assumptions.riskiest_assumption || null,\n  errors_found: errors.errors_found || false,\n  critical_issue: errors.most_critical_issue || null\n}}];"
+      },
+      "id": "e17b206d-99d7-4652-9566-0b883d03986e",
+      "name": "Confidence Evaluator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3648,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.confidence }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              },
+              "rightValue": 0.4,
+              "id": "8441a24b-b37e-4b8d-9e82-b6c16c748f04"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "747b9f24-462a-4d4b-97ee-fdbe574878db",
+      "name": "Deterministic Guard",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3872,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a startup advisor writing a validation report. Be honest and direct.\nReturn ONLY valid JSON:\n{\"summary\": \"<3 sentences>\", \"verdict\": \"<verdict>\", \"scores\": {\"clarity\":<n>,\"market\":<n>,\"competition\":<n>,\"confidence\":<n>}, \"key_strengths\": [\"s1\",\"s2\"], \"key_risks\": [\"r1\",\"r2\"], \"riskiest_assumption\": \"<text>\", \"correction\": \"<suggested improvement if errors found, else null>\", \"next_steps\": [\"step1\",\"step2\",\"step3\"]}"
+            },
+            {
+              "content": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "f3fbbef9-5e42-46e1-bb45-87234dabc65e",
+      "name": "Report Generator",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        4320,
+        272
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "HNYgdFumLPfVcvrp",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "startup_name",
+              "name": "startup_name",
+              "value": "={{ $(\"Startup Evaluation Form\").item.json.startup_name }}",
+              "type": "string"
+            },
+            {
+              "id": "founder_email",
+              "name": "founder_email",
+              "value": "={{ $(\"Startup Evaluation Form\").item.json.founder_email }}",
+              "type": "string"
+            },
+            {
+              "id": "report",
+              "name": "report",
+              "value": "={{ $json.output[0].content[0].text }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "73e8676f-4c9e-41bb-86d5-9ee7e1693054",
+      "name": "Format Final Report",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4672,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "startup_name",
+              "name": "startup_name",
+              "value": "={{ $json.startup_name }}",
+              "type": "string"
+            },
+            {
+              "id": "founder_email",
+              "name": "founder_email",
+              "value": "={{ $json.founder_email }}",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "rejected",
+              "type": "string"
+            },
+            {
+              "id": "reason",
+              "name": "reason",
+              "value": "Problem description too short (minimum 50 characters required)",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "Please describe your problem in more detail (at least 50 characters).",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f55dcd47-bebf-461b-950d-e7bd92875e17",
+      "name": "Format Rejection Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2112,
+        656
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Startup Evaluation Form": {
+      "main": [
+        [
+          {
+            "node": "Input Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Validator": {
+      "main": [
+        [
+          {
+            "node": "Problem Clarity Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Market Research Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Competition Checker Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Rejection Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Problem Clarity Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Analysis": {
+      "main": [
+        [
+          {
+            "node": "Scoring Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market Research Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge Analysis",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Competition Checker Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge Analysis",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Scoring Logic": {
+      "main": [
+        [
+          {
+            "node": "Verdict Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verdict Router": {
+      "main": [
+        [
+          {
+            "node": "Reasoning Reconstructor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Assumption Extractor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Error Detector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reasoning Reconstructor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reasoning Reconstructor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reasoning Reconstructor": {
+      "main": [
+        [
+          {
+            "node": "Merge Autopsy Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assumption Extractor": {
+      "main": [
+        [
+          {
+            "node": "Merge Autopsy Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Error Detector": {
+      "main": [
+        [
+          {
+            "node": "Merge Autopsy Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Autopsy Results": {
+      "main": [
+        [
+          {
+            "node": "Confidence Evaluator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confidence Evaluator": {
+      "main": [
+        [
+          {
+            "node": "Deterministic Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deterministic Guard": {
+      "main": [
+        [
+          {
+            "node": "Report Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Report Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Generator": {
+      "main": [
+        [
+          {
+            "node": "Format Final Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Rejection Output": {
+      "main": [
+        []
+      ]
+    },
+    "Format Final Report": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c56b66c5-f586-4fb6-8ae2-9e6b65a85561",
+  "meta": {
+    "instanceId": "4cf007e254f7d4e5ab76e396823487709cf7198c3d184cde622aa00388cf00f5"
+  },
+  "nodeGroups": [],
+  "id": "3vESGQJbmBUf5tT4",
+  "tags": []
+}
