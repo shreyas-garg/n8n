@@ -1,3 +1,5 @@
+![Startup Autopsy Workflow](Screenshot%202026-06-17%20at%2010.32.36%20PM.png)
+
 # Startup Autopsy — Agentic Workflow (n8n)
 
 An AI-powered startup evaluation system built in n8n that analyzes a startup idea across multiple dimensions and produces a structured verdict report with confidence scoring.
